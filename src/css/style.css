@@ -25,9 +25,13 @@ body {
     background-color: #000;
     overflow: hidden;
     /* font-family: 'Digital-7'; */
+    /* font-weight: bolder; */
+}
+.clock {
+    display: flex;
     font-family: 'LCD AT&T Phone Time/Date';
     font-size: 20em;
-    font-weight: 400;
+    font-weight: normal;
     color: #f70000;
     text-shadow: 0 0 3px #fff,
     0 0 4px #fff,
@@ -36,10 +40,6 @@ body {
     0 0 7px #e60073,
     0 0 8px #e60073,
     0 0 9px #e60073;
-    /* font-weight: bolder; */
-}
-.clock {
-    display: flex;
 }
 .sep {
     color: inherit;
@@ -48,13 +48,25 @@ body {
     color: #00000000;
     text-shadow: none;
 }
+.clock.inactive {
+    color: #0000f7;
+    text-shadow: 0 0 3px #fff,
+    0 0 4px #fff,
+    0 0 5px #0073e6,
+    0 0 6px #0073e8,
+    0 0 7px #0073ea,
+    0 0 8px #0073ec,
+    0 0 9px #0073ee;
+}
 @media screen and (max-width:720px) and (orientation: portrait) {
-    body {
-        font-size: 4em;
+    .clock {
+        font-size: 6.5em;
+        font-weight: 100;
     }
 }
 @media screen and (max-width: 1024px) and (orientation: landscape) {
-	body {
-		font-size: 4em;
+	.clock {
+		font-size: 10em;
+        font-weight: 100;
 	}
 }

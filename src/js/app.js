@@ -229,6 +229,12 @@ class IfVisible {
 		this.Events.dom(this.doc, 'keyup', this.startIdleTimer.bind(this));
 		this.Events.dom(this.doc, 'touchstart', this.startIdleTimer.bind(this));
 		this.Events.dom(this.root, 'scroll', this.startIdleTimer.bind(this));
+		// device orientation
+		if (window.DeviceOrientationEvent) {
+			// Chrome, Safari, Mozilla
+			this.Events.dom(this.root, 'deviceorientation', this.startIdleTimer.bind(this));
+		}
+
 		// When page is focus without any event, it should not be idle.
 		this.focus(this.startIdleTimer.bind(this));
 	}
@@ -378,10 +384,11 @@ class IfVisible {
 }
 //
 $(function _Main() {
-	$hh = $('.hh')
-	$mm = $('.mm')
-	$ss = $('.ss')
-	$sep = $('.sep')
+	$hh = $('.hh');
+	$mm = $('.mm');
+	$ss = $('.ss');
+	$sep = $('.sep');
+	$clock = $('.clock');
 	let Events = new _Events();
 	let ifvisible = new IfVisible(window, document);
 	let DOC_HIDDEN, VISIBILITY_CHANGE_EVENT;
@@ -389,83 +396,76 @@ $(function _Main() {
 	const updateClock = () => {
 		let time = new Date().getTime();
 		let dt = new Date(time);
-		let hh, mm, ss;
+		let hh, mm, ss, _ss;
 		let cancelTimer;
 		hh = dt.getHours();
 		mm = dt.getMinutes();
-		ss = dt.getSeconds();
+		_ss = dt.getSeconds();
+		ss = _ss;
 		// format clock face elements
 		hh = hh < 10 ? `0${hh}` : `${hh.toString(10)}`;
 		mm = mm < 10 ? `0${mm}` : `${mm.toString(10)}`;
 		ss = ss < 10 ? `0${ss}` : `${ss.toString(10)}`;
-		if (toggle == 0) {
+		if (_ss % 2) {
 			$sep.addClass('off');
 		} else {
 			$sep.removeClass('off');
 		}
+		if ($clock.hasClass('inactive')) {
+			$clock.removeClass('inactive');
+		}
 		$hh.text(hh);
 		$mm.text(mm);
 		$ss.text(ss);
-		toggle ^= 1;
 	};
 	ifvisible.on('blur', () => {
-		//console.log(`blur detected...`)
 		if (timer) {
 			timer.stop();
 			delete timer;
 			timer = null;
-			if (toggle === 0) {
-				toggle = 1;
-				updateClock();
-			} else {
-				updateClock();
+			if ($sep.hasClass('off')) {
+				$sep.removeClass('off');
 			}
+			$clock.addClass('inactive');
+			//
 		}
 	})
 	ifvisible.on('focus', () => {
-		//console.log(`focus detected....`)
-		//console.log(ifvisible.getIdleInfo())
+		updateClock();
 		timer = ifvisible.onEvery(1, updateClock);
 	})
 	ifvisible.focus(function(){
-		//console.log(`act on focus...`)
-		//console.log(ifvisible.getIdleInfo())
+		updateClock();
 		timer = ifvisible.onEvery(1, updateClock);
 	})
 	ifvisible.blur(function(){
-		//console.log(`act on blur...`)
 		if (timer) {
 			timer.stop();
 			delete timer;
 			timer = null;
-			if (toggle === 0) {
-				toggle = 1;
-				updateClock();
-			} else {
-				updateClock();
+			if ($sep.hasClass('off')) {
+				$sep.removeClass('off')
 			}
+			$clock.addClass('inactive');
 		}
 	})
 	ifvisible.idle(function() {
-		//console.log(`act on Idle...`)
 		if (timer) {
 			timer.stop();
 			delete timer;
 			timer = null;
-			if (toggle === 0) {
-				toggle = 1;
-				updateClock();
-			} else {
-				updateClock();
+			if ($sep.hasClass('off')) {
+  				$sep.removeClass('off')
 			}
+			$clock.addClass('inactive');
 		}
 	})
 	ifvisible.wakeup(function(){
-		//console.log(`act on Wakeup...`)
+		updateClock();
 		timer = ifvisible.onEvery(1, updateClock);
 	})
 	// on load start the clock
+	updateClock();
 	timer = ifvisible.onEvery(1, updateClock);
-
-	window.ifvisible = ifvisible;
+	// window.ifvisible = ifvisible;
 });

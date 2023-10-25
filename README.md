@@ -4,6 +4,10 @@ Used and converted to VanillaJS the code of [ifvisible.js](https://github.com/se
 
     With "precise" clock updates.
 
+<div align="center">
+    <img src="docimg/demo.png">
+</div>
+
 This simple clock face uses [special LCD font](https://dl.dafont.com/dl/?f=lcd_at_t_phone_time_date) from [DAFONT](https://dl.dafont.com/) website.
 This is the default page on my home based NAS webserver.
 

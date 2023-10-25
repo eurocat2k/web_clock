@@ -67,10 +67,16 @@ const Events = new _Events();
 class _Timer {
 	#token;
 	#stopped = false;
+	#timeout;
 	constructor(ifvisible, seconds, callback) {
 		this.ifvisible = ifvisible;
 		this.callback = callback;
 		this.seconds = seconds;
+		this.cancel;
+		this._instance
+		if (!_Timer._instance) {
+			_Timer._instance = this
+		}
 		this.start();
 		this.ifvisible.on('statusChanged', (data) => {
 			if (this.#stopped === false) {
@@ -80,16 +86,56 @@ class _Timer {
           			this.pause();
         		}
       		}
-    	});
+		});
+		return _Timer._instance;
 	}
 	start() {
+		let self = this;
 		this.#stopped = false;
-		clearInterval(this.#token);
-		this.#token = setInterval(this.callback, this.seconds * 1000);
+		const accurateTimer = (fn, time = 1000) => {
+			// nextAt is the value for the next time the timer should fire.
+			// timeout holds the timeoutID so the timer can be stopped.
+			let nextAt, timeout;
+			// Initilzes nextAt as now + the time in milliseconds you pass
+			// to accurateTimer.
+			nextAt = new Date().getTime() + time;
+
+			// This function schedules the next function call.
+			const wrapper = () => {
+				// The next function call is always calculated from when the
+				// timer started.
+				nextAt += time;
+				// this is where the next setTimeout is adjusted to keep the
+				//time accurate.
+				self.#timeout = setTimeout(wrapper, nextAt - new Date().getTime());
+				// the function passed to accurateTimer is called.
+				fn();
+			};
+
+			// this function stops the timer.
+			// const cancel = () => clearTimeout(self.#timeout);
+
+			// the first function call is scheduled.
+			if (self.#timeout) {
+				clearTimeout(self.#timeout);
+				this.#timeout = null;
+			}
+			self.#timeout = setTimeout(wrapper, nextAt - new Date().getTime());
+			// the cancel function is returned so it can be called outside
+			// accurateTimer.
+			// return { cancel };
+		};
+		accurateTimer(this.callback, 1000);
+		// clearInterval(this.#token);
+		// this.#token = setInterval(this.callback, this.seconds * 1000);
 	}
 	stop () {
 		this.#stopped = true;
-		clearInterval(this.#token);
+		// clearInterval(this.#token);
+		if (this.#timeout) {
+			clearTimeout(this.#timeout);
+			this.#timeout = null;
+		}
 	}
 	resume () {
 		this.start();

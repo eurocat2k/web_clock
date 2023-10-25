@@ -31,14 +31,17 @@ class _Events {
         }
     }
 
-    remove (event, callback) {
+	remove(event, callback) {
+		let _loc_store = []
         if (!callback) {
             delete this.#store[event];
         }
         if (this.#store[event]) {
-            this.#store[event] = this.#store[event].filter(savedCallback => {
+            _loc_store = this.#store[event].filter(savedCallback => {
                 return callback !== savedCallback;
-            });
+			});
+			this.#store = []
+			this.#store = _loc_store;
         }
     }
 
@@ -68,27 +71,33 @@ class _Timer {
 	#token;
 	#stopped = false;
 	#timeout;
-	constructor(ifvisible, seconds, callback) {
-		this.ifvisible = ifvisible;
-		this.callback = callback;
-		this.seconds = seconds;
+	constructor(ifvisible, seconds = 1000, callback) {
+		this._ifvisible = ifvisible;
+		this._callback = callback;
+		this._seconds = seconds;
 		this.cancel;
 		this._instance
 		if (!_Timer._instance) {
 			_Timer._instance = this
 		}
 		this.start();
-		this.ifvisible.on('statusChanged', (data) => {
-			if (this.#stopped === false) {
-        		if (data.status === STATUS_ACTIVE) {
-          			this.start();
-        		} else {
-          			this.pause();
-        		}
-      		}
-		});
+		if (this._ifvisible) {
+			this._ifvisible.on('statusChanged', data => {
+				if (this.#stopped === false) {
+					if (data.status === STATUS_ACTIVE) {
+						this.start()
+					} else {
+						this.pause()
+					}
+				}
+			})
+		}
 		return _Timer._instance;
 	}
+	get ifvisible() { return this._ifvisible; }
+	set ifvisible(i) { return this._ifvisible = i; }
+	get callback() { return this._callback; }
+	set callback(c) { return this._callback = c; }
 	start() {
 		let self = this;
 		this.#stopped = false;
@@ -125,7 +134,10 @@ class _Timer {
 			// accurateTimer.
 			// return { cancel };
 		};
-		accurateTimer(this.callback, 1000);
+		if (this.callback) {
+			accurateTimer(this.callback, this.seconds);
+		}
+
 		// clearInterval(this.#token);
 		// this.#token = setInterval(this.callback, this.seconds * 1000);
 	}
@@ -163,8 +175,8 @@ const IE = (function () {
 		// eslint-disable-next-line no-plusplus, no-sequences
 		div.innerHTML = `<!--[if gt IE ${++v}]><i></i><![endif]-->`,
 		all[0]
-  	);
-  	return v > 4 ? v : undef;
+	);
+	return v > 4 ? v : undef;
 }());
 
 class IfVisible {
@@ -183,6 +195,10 @@ class IfVisible {
 		this.doc = doc;
 		this.root = root;
 		this.Events = new _Events;
+		this._timer;
+		if (!IfVisible._instance) {
+			IfVisible._instance = this;
+		}
 		// Find correct browser events
 		if (this.doc.hidden !== undefined) {
 			DOC_HIDDEN = 'hidden';
@@ -212,6 +228,7 @@ class IfVisible {
 		}
 		this.startIdleTimer();
 		this.trackIdleStatus();
+		return IfVisible._instance;
 	}
 	/**
 	 * @name legacyMode
@@ -413,8 +430,17 @@ class IfVisible {
 	 * @param {function} callback
 	 * @returns new _Timer
 	 */
-	onEvery (seconds, callback) {
-		return new _Timer(this, seconds, callback);
+	onEvery(seconds, callback) {
+		if (!this._timer) {
+			// delete this._timer;
+			// this._timer = null;
+			this._timer = new _Timer(this, seconds, callback)
+		} else {
+			delete this._timer;
+			this._timer = null;
+			this._timer = new _Timer(this, seconds, callback)
+		}
+		return this._timer;
 	}
 	/**
 	 * @name now

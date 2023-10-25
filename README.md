@@ -2,7 +2,7 @@
 
 Used and converted to VanillaJS the code of [ifvisible.js](https://github.com/serkanyersen/ifvisible.js).
 
-    With <cite>precise</cite> clock updates.
+    With "precise" clock updates.
 
 This simple clock face uses [special LCD font](https://dl.dafont.com/dl/?f=lcd_at_t_phone_time_date) from [DAFONT](https://dl.dafont.com/) website.
 This is the default page on my home based NAS webserver.
